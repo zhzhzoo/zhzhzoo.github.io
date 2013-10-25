@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Disp. Nil.]]></title>
-  <link href="http://blog.zhzhzoo.org/atom.xml" rel="self"/>
-  <link href="http://blog.zhzhzoo.org/"/>
-  <updated>2013-10-25T22:56:23+08:00</updated>
-  <id>http://blog.zhzhzoo.org/</id>
+  <link href="http://zhzhzoo.github.io/atom.xml" rel="self"/>
+  <link href="http://zhzhzoo.github.io/"/>
+  <updated>2013-10-25T23:12:26+08:00</updated>
+  <id>http://zhzhzoo.github.io/</id>
   <author>
     <name><![CDATA[zhzhzoo]]></name>
     
@@ -14,9 +14,9 @@
   
   <entry>
     <title type="html"><![CDATA[百年讲堂的新演出提醒]]></title>
-    <link href="http://blog.zhzhzoo.org/blog/2013/10/pku-hall-scout/"/>
+    <link href="http://zhzhzoo.github.io/blog/2013/10/pku-hall-scout/"/>
     <updated>2013-10-25T19:34:00+08:00</updated>
-    <id>http://blog.zhzhzoo.org/blog/2013/10/pku-hall-scout</id>
+    <id>http://zhzhzoo.github.io/blog/2013/10/pku-hall-scout</id>
     <content type="html"><![CDATA[<p>开学，我就发现了两件事情：</p>
 
 <ul>
@@ -34,7 +34,7 @@ Transmit 或迅雷下载完成时，Mail 收到新邮件时，屏幕右上角会
 
 <p>我在打 Notification Center 的主意，把演出信息直接推送到那里多好。当然要先搜索 Notification Center 的 API 了，搜索时，百度给了我一个利用消息中心显示 RSS 标题的<a href="http://www.appinn.com/reader-notifier/" title="Reader Notifier – 通知中心 RSS 客户端[OSX]">小软件</a>。那么，我还是做一个抓取页面并生成 RSS Feed 的服务器端脚本吧，既然剩下的那一半已经有人做好了嘛。</p>
 
-<p><img src="http://blog.zhzhzoo.org/graphics/0/RSS-scout-Final.png" title="效果图" alt="效果图" /></p>
+<p><img src="http://zhzhzoo.github.io/graphics/0/RSS-scout-Final.png" title="效果图" alt="效果图" /></p>
 
 <h2>从一个网页生成 RSS</h2>
 
@@ -42,12 +42,12 @@ Transmit 或迅雷下载完成时，Mail 收到新邮件时，屏幕右上角会
 
 <p><a href="http://feed43.com/" title="Feed43 : Convert any web page to news feed on the fly">Feed 43</a> 是一个帮你抓取网页，生成 RSS Feed 的网站。我在点开它之前，想不通它是怎么分析页面的结构的，它怎么能把每个页面都分条归类做成 RSS Feed 呢？打开之后，我发现答案好简单粗暴：它根本不会分，你得告诉它。</p>
 
-<p><img src="http://blog.zhzhzoo.org/graphics/0/Feed43-Step1.png" title="第一步" alt="第一步" /></p>
+<p><img src="http://zhzhzoo.github.io/graphics/0/Feed43-Step1.png" title="第一步" alt="第一步" /></p>
 
 <p>打开网页，点创建 Feed，同意使用协议。第一步要输入抓去页面的 url，稍等片刻，待网页抓到手，下面的框里会显示它的源码。这里不得不吐槽一句：北大百年讲堂的订票页面明明是 UTF-8 编码的，源码里非得写是
 gb2312，误导我了。</p>
 
-<p><img src="http://blog.zhzhzoo.org/graphics/0/Feed43-Step2.png" title="第二步" alt="第二步" /></p>
+<p><img src="http://zhzhzoo.github.io/graphics/0/Feed43-Step2.png" title="第二步" alt="第二步" /></p>
 
 <p>第二步，我们得告诉网站该怎么把消息分条。办法很简单，就是<a href="http://zh.wikipedia.org/wiki/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F" title="正则表达式 - 维基百科，自由的百科全书">正则表达式</a>。这个网站根据一个简化的正则表达式来匹配页面，对每次成功匹配生成一条新消息。Global Search Pattern 的匹配执行一次，匹配到的文本会被送给 Item (repeatable) Search Pattern 反复匹配，每次匹配的文本分别摘出。</p>
 
@@ -58,7 +58,7 @@ gb2312，误导我了。</p>
 
 <p>比如，上图就是用来匹配百年讲堂卖票网的模式串以及它匹配到的信息。</p>
 
-<p><img src="http://blog.zhzhzoo.org/graphics/0/Feed43-Step3.png" title="第三步" alt="第三步" /></p>
+<p><img src="http://zhzhzoo.github.io/graphics/0/Feed43-Step3.png" title="第三步" alt="第三步" /></p>
 
 <p>第三步，我们把摘出来的每条信息编进 RSS 里。根据这个网站的分法，
 RSS 的每一条好像分成标题、链接和内容三个部分，我们把刚才摘出来的信息，按它们的代号，分别填进去就好啦。下面可以看效果，调一调。</p>
@@ -69,7 +69,7 @@ RSS 的每一条好像分成标题、链接和内容三个部分，我们把刚�
 
 <p>最后，把 xml 链接填进 RSS 通知器的设置里，它会每过一段时间帮我们查查演出信息有没有更新的。Feed43 强烈建议我们把检查的间隔设得和六小时在一个数量级，不过我没太敢，因为它的服务器经常因为负荷太高而拒绝服务，而且我也不知道我的 RSS 通知器在发现出错后会不会作出“穷寇莫追”的选择。</p>
 
-<p><img src="http://blog.zhzhzoo.org/graphics/0/Notifier-Settings.png" title="通知器的设置" alt="通知器的设置" /></p>
+<p><img src="http://zhzhzoo.github.io/graphics/0/Notifier-Settings.png" title="通知器的设置" alt="通知器的设置" /></p>
 
 <p>今天的问题解决了，而且没写脚本，真好。只是有一个问题，做 RSS Feed
 的网站不知道每条消息是什么时候更新的，我只能寄希望于我的 RSS 通知器会存下每一条消息，知道抓下的消息里有没有没出现过的。</p>

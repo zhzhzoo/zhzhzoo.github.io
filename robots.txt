@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://blog.zhzhzoo.org/sitemap.xml 
+Sitemap: http://zhzhzoo.github.io/sitemap.xml 

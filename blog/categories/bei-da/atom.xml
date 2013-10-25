@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: 北大 | Disp. Nil.]]></title>
-  <link href="http://blog.zhzhzoo.org/blog/categories/bei-da/atom.xml" rel="self"/>
-  <link href="http://blog.zhzhzoo.org/"/>
-  <updated>2013-10-25T22:56:23+08:00</updated>
-  <id>http://blog.zhzhzoo.org/</id>
+  <link href="http://zhzhzoo.github.io/blog/categories/bei-da/atom.xml" rel="self"/>
+  <link href="http://zhzhzoo.github.io/"/>
+  <updated>2013-10-25T23:12:26+08:00</updated>
+  <id>http://zhzhzoo.github.io/</id>
   <author>
     <name><![CDATA[zhzhzoo]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[百年讲堂的新演出提醒]]></title>
-    <link href="http://blog.zhzhzoo.org/blog/2013/10/pku-hall-scout/"/>
+    <link href="http://zhzhzoo.github.io/blog/2013/10/pku-hall-scout/"/>
     <updated>2013-10-25T19:34:00+08:00</updated>
-    <id>http://blog.zhzhzoo.org/blog/2013/10/pku-hall-scout</id>
+    <id>http://zhzhzoo.github.io/blog/2013/10/pku-hall-scout</id>
     <content type="html"><![CDATA[<p>开学，我就发现了两件事情：</p>
 
 <ul>
