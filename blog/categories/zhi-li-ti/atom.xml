@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 智力题 | Disp. Nil.]]></title>
+  <link href="http://zhzhzoo.github.io/blog/categories/zhi-li-ti/atom.xml" rel="self"/>
+  <link href="http://zhzhzoo.github.io/"/>
+  <updated>2013-12-31T03:15:02+08:00</updated>
+  <id>http://zhzhzoo.github.io/</id>
+  <author>
+    <name><![CDATA[zhzhzoo]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[一个 0-1 序列上的游戏]]></title>
+    <link href="http://zhzhzoo.github.io/blog/2013/12/a-0-1-sequence-game/"/>
+    <updated>2013-12-30T23:44:00+08:00</updated>
+    <id>http://zhzhzoo.github.io/blog/2013/12/a-0-1-sequence-game</id>
+    <content type="html"><![CDATA[<p>在乒乓球队群里有人发了一个有趣的面试题目，我和<a href="http://tieba.baidu.com/f?kw=%C1%F5%CA%AB%CF%F6" title="刘诗霄">@刘诗霄</a>（经过一段
+艰苦卓绝的挣扎）把它讨论出来了。（涛神用了五分钟就想出来了，他的做法
+我听不懂……）</p>
+
+<h1>游戏</h1>
+
+<p>规则如下：</p>
+
+<ul>
+<li>有<code>n</code>个数从左到右排成一列，它们每一个是<code>0</code>或<code>1</code>；</li>
+<li>每次划掉最右边的数，再在最左边写上一个新的数；</li>
+<li>如果划掉的是<code>1</code>，由你决定最左边写的是<code>0</code>还是<code>1</code>；</li>
+<li>如果划掉的是<code>0</code>，老天决定最左边写的是<code>0</code>还是<code>1</code>（刘诗霄：不要紧
+张，不是概率问题。。。）；</li>
+</ul>
+
+
+<p>现在，你想把这一列数变成全部相等的，而老天千方百计阻止你这么做。那么，
+最后是人会赢呢，还是天会赢呢？</p>
+
+<h1>一些小情况</h1>
+
+<p>规则不复杂，但是题目还是有点儿复杂，我们先来看一下<code>n</code>比较小的情况。</p>
+
+<p>首先，为了说话方便，我们把规则换个说法：</p>
+
+<ul>
+<li>有<code>n</code>个数从左到右拍成一列，它们每一个是<code>0</code>或<code>1</code>；</li>
+<li>每次从右到左考虑每个数，把它擦掉，之后：</li>
+<li>如果它是<code>1</code>，你根据兴趣写上<code>0</code>或<code>1</code>；</li>
+<li>如果它是<code>0</code>，老天根据兴趣写上<code>0</code>或<code>1</code>。</li>
+<li>如果左边到头了，再从右边开始。</li>
+</ul>
+
+
+<p>显然它和换之前是一样的。</p>
+
+<h2>n = 1</h2>
+
+<p>初始状态有两种，分别是：</p>
+
+<pre><code>0
+</code></pre>
+
+<p>和</p>
+
+<pre><code>1
+</code></pre>
+
+<p>无论哪一种老天都要输。</p>
+
+<h2>n = 2</h2>
+
+<p>初始状态有<code>4</code>种，分别是：</p>
+
+<pre><code>00
+</code></pre>
+
+<p>老天输。</p>
+
+<pre><code>11
+</code></pre>
+
+<p>老天输。</p>
+
+<pre><code>01
+</code></pre>
+
+<p>老天输，因为我把最右边的<code>1</code>写成<code>0</code>就赢了。</p>
+
+<pre><code>10
+</code></pre>
+
+<p>老天输，因为不管老天把那个<code>0</code>写成什么，结果都是归结到之前的情况。</p>
+
+<p>情况太多了，一个个看不完，直接看</p>
+
+<h2>n = 5</h2>
+
+<p>的吧。</p>
+
+<p>如果我开始只有一个<code>1</code>呢，比如这样：</p>
+
+<pre><code>00010
+    ^
+</code></pre>
+
+<p>为了记住现在该动哪个数了，我加了个标记。</p>
+
+<p>如果老天不动：</p>
+
+<pre><code>00010
+   ^
+</code></pre>
+
+<p>我也不动：</p>
+
+<pre><code>00010
+  ^
+</code></pre>
+
+<p>要是老天还不动呢：</p>
+
+<pre><code>00010
+ ^
+</code></pre>
+
+<p>还是不动：</p>
+
+<pre><code>00010
+^
+</code></pre>
+
+<p>岿然不动：</p>
+
+<pre><code>00010
+    ^
+</code></pre>
+
+<p>Z<sup>Z<sup>Z</sup></sup>Z<sup>Z<sup>Z</sup></sup>：</p>
+
+<pre><code>00010
+   ^
+</code></pre>
+
+<p>我就动：</p>
+
+<pre><code>00000
+  ^
+</code></pre>
+
+<p>老天输啦！</p>
+
+<p>老天表示他要动一动，我们回到比如说这一步：</p>
+
+<pre><code>00010
+  ^
+</code></pre>
+
+<p>老天动啦：</p>
+
+<pre><code>00110
+ ^
+</code></pre>
+
+<p>老天又动啦：</p>
+
+<pre><code>01110
+^
+</code></pre>
+
+<p>接着动：</p>
+
+<pre><code>11110
+    ^
+</code></pre>
+
+<p>还是要动：</p>
+
+<pre><code>11111
+   ^
+</code></pre>
+
+<p>他又输了<code>T_T~Oo..</code>。</p>
+
+<p>这回不要动那么多啦：</p>
+
+<pre><code>00010
+  ^
+</code></pre>
+
+<p>这个就不动了：</p>
+
+<pre><code>00010
+ ^
+</code></pre>
+
+<p>这儿呢……动一下吧：</p>
+
+<pre><code>01010
+^
+</code></pre>
+
+<p>然后一直不动：</p>
+
+<pre><code>01010
+   ^
+</code></pre>
+
+<p>该我了，我一定要动：</p>
+
+<pre><code>01000
+  ^
+</code></pre>
+
+<p>老天不得不动了：</p>
+
+<pre><code>01100
+ ^
+</code></pre>
+
+<p>那我就不动啦：</p>
+
+<pre><code>01100
+^
+</code></pre>
+
+<p>老天如果聪明，这里它不会动的：</p>
+
+<pre><code>01100
+    ^
+</code></pre>
+
+<p>不得不动了：</p>
+
+<pre><code>01101
+   ^
+</code></pre>
+
+<p>这里也是不动为妙：</p>
+
+<pre><code>01101
+  ^
+</code></pre>
+
+<p>我也不动为妙：</p>
+
+<pre><code>01101
+^
+</code></pre>
+
+<p>老天若不认输，也是不会动的：</p>
+
+<pre><code>01101
+    ^
+</code></pre>
+
+<p>啊，这回我动一动：</p>
+
+<pre><code>01100
+   ^
+</code></pre>
+
+<p>老天非动不可了：</p>
+
+<pre><code>01110
+  ^
+</code></pre>
+
+<p>那我就不动啦：</p>
+
+<pre><code>01110
+^
+</code></pre>
+
+<p>老天现在动也不是，不动也不是，认输啦！</p>
+
+<h1>一般情况</h1>
+
+<p>其实从头想起来这道题不是特别特别好想呢。不过已经想出来了，
+就很难装作不会的样子从头想，还是讲答案吧~</p>
+
+<p>这是一串数：</p>
+
+<pre><code>xxxxxxxxxxxxxx..........xxxxxxxxxxxx
+                                   ^
+</code></pre>
+
+<p>从最右边开始，要是碰见了一个<code>1</code>：</p>
+
+<pre><code>xxxxxxxxx......xxxxx1xxx......xxxxxx
+                    ^ 
+</code></pre>
+
+<p>我动不动呢？这取决于之前是不是有过一个<code>0</code>，被老天动成<code>1</code>了：</p>
+
+<pre><code>xxxxxxxxx......xxxxx1xxx......xx0xxx
+                                ^
+xxxxxxxxx......xxxxx1xxx......xx1xxx
+                               ^
+</code></pre>
+
+<p>要是有我就不动：</p>
+
+<pre><code>xxxxxxxxx......xxxxx1xxx......xx1xxx
+                   ^
+</code></pre>
+
+<p>否则我就动：</p>
+
+<pre><code>xxxxxxxxx......xxxxx0xxx......xx0xxx
+                   ^
+</code></pre>
+
+<p>让我们来证明我会赢，为了证明它，我们要用到“字典序”。所谓
+“字典序”，就是一个相同位数的 0-1 串之间的线性序，定义为把两
+个串看成十进制数得到的大小关系。比如<code>1001</code>就比<code>0100</code>大，
+<code>11010111</code>比<code>11010101</code>大。</p>
+
+<p>那么，我照这个策略操作，老天有何感想？首先它每轮至少得动
+一个数，要不这些数就全成<code>0</code>了。然后，就没有然后了。因为老
+天把一个<code>0</code>动成了<code>1</code>，而这之前的<code>1</code>都没有变成<code>0</code>。那么，
+得到的0-1串会比原来大。而0-1串又是有限的，它不会一直变大下
+去，这些数就都成<code>0</code>或<code>1</code>啦~</p>
+
+<p>所谓“人定胜天”？不知道为什么出题人让人来进攻，天来防守。
+要是倒过来不就得听天由命了嘛？</p>
+]]></content>
+  </entry>
+  
+</feed>
