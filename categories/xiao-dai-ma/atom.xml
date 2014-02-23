@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: 小代码 | Disp. Nil.]]></title>
+  <link href="http://zhzhzoo.github.io/categories/xiao-dai-ma/atom.xml" rel="self"/>
+  <link href="http://zhzhzoo.github.io/"/>
+  <updated>2014-02-23T20:04:39+08:00</updated>
+  <id>http://zhzhzoo.github.io/</id>
+  <author>
+    <name><![CDATA[zhzhzoo]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[百年讲堂的新演出提醒]]></title>
+    <link href="http://zhzhzoo.github.io/2013/pku-hall-scout/"/>
+    <updated>2013-10-25T19:34:00+08:00</updated>
+    <id>http://zhzhzoo.github.io/2013/pku-hall-scout</id>
+    <content type="html"><![CDATA[<p>开学，我就发现了两件事情：</p>
+
+<ul>
+<li>北大同学们对文艺有着浓厚的兴趣。</li>
+<li>我没法及时得知百年讲堂门口的海报和售票处公告栏的更新。</li>
+</ul>
+
+
+<p>我能发现这两点，是因为每到百讲门口，我会发现20元的演出票都卖完了。
+名气越大，票卖得越快。像新年音乐会，我听说时已只剩80元的票了。好在
+吉他、戏剧、室内乐总卖不完，我能买到票。于是我得想办法第一时间知道
+新演出消息，要不然每次至少得多掏20块钱。</p>
+
+<h2>推送到 Notification Center</h2>
+
+<p>Mac OS X 拥有一个消息中心，应用程序们可以在上面发布提醒。比如，
+Transmit 或迅雷下载完成时，Mail 收到新邮件时，屏幕右上角会弹出一个
+气泡，并且屏幕右边的通知区域（用二指从触摸板右边界滑入以打开）会显
+示这条通知，直到你点它或关掉它。</p>
+
+<p>我在打 Notification Center 的主意，把演出信息直接推送到那里多好。当
+然要先搜索 Notification Center 的 API 了，搜索时，百度给了我一个利
+用消息中心显示 RSS 标题的<a href="http://www.appinn.com/reader-notifier/" title="Reader Notifier – 通知中心 RSS 客户端[OSX]">小软件</a>。那么，我还是做一个抓取页面并生
+成 RSS Feed 的服务器端脚本吧，既然剩下的那一半已经有人做好了嘛。</p>
+
+<p><img src="/graphics/0/RSS-scout-Final.png" title="效果图" alt="效果图" /></p>
+
+<h2>从一个网页生成 RSS</h2>
+
+<p>现在国内国外的网上飘着大朵大朵的云，随便抓一朵，就够我这个小脚本受
+用了。不过，我在搜索 RSS 格式标准时，发现这个小脚本也不用自己手写。</p>
+
+<p><a href="http://feed43.com/" title="Feed43 : Convert any web page to news feed on the fly">Feed 43</a> 是一个帮你抓取网页，生成 RSS Feed 的网站。我在点开它之
+前，想不通它是怎么分析页面的结构的，它怎么能把每个页面都分条归类做
+成 RSS Feed 呢？打开之后，我发现答案好简单粗暴：它根本不会分，你得
+告诉它。</p>
+
+<p><img src="/graphics/0/Feed43-Step1.png" title="第一步" alt="第一步" /></p>
+
+<p>打开网页，点创建 Feed，同意使用协议。第一步要输入抓去页面的 url，
+稍等片刻，待网页抓到手，下面的框里会显示它的源码。这里不得不吐槽
+一句：北大百年讲堂的订票页面明明是 UTF-8 编码的，源码里非得写是
+gb2312，误导我了。</p>
+
+<p><img src="/graphics/0/Feed43-Step2.png" title="第二步" alt="第二步" /></p>
+
+<p>第二步，我们得告诉网站该怎么把消息分条。办法很简单，就是<a href="http://zh.wikipedia.org/wiki/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F" title="正则表达式 - 维基百科，自由的百科全书">正则表达式</a>。
+这个网站根据一个简化的正则表达式来匹配页面，对每次成功匹配生成一
+条新消息。Global Search Pattern 的匹配执行一次，匹配到的文本会被
+送给 Item (repeatable) Search Pattern 反复匹配，每次匹配的文本分
+别摘出。</p>
+
+<p>这个简化的正则表达式很简单，只有四个特殊符号 <code>{\%}</code>, <code>{*}</code>,
+<code>{_}</code>, <code>{|}</code>。<code>{\%}</code>匹配任意字符串，并把匹配到的摘出。
+<code>{*}</code>也匹配任意字符串。<code>{_}</code>匹配含换行在内的一串空白符，
+<code>{|}</code>匹配换行。后三个特殊符号匹配到的字符串都会被丢弃，不会计
+入最后的结果。</p>
+
+<p>比如，上图就是用来匹配百年讲堂卖票网的模式串以及它匹配到的信息。</p>
+
+<p><img src="/graphics/0/Feed43-Step3.png" title="第三步" alt="第三步" /></p>
+
+<p>第三步，我们把摘出来的每条信息编进 RSS 里。根据这个网站的分法，
+RSS 的每一条好像分成标题、链接和内容三个部分，我们把刚才摘出来的
+信息，按它们的代号，分别填进去就好啦。下面可以看效果，调一调。</p>
+
+<p>这样就好啦，这个网站给了我们一个 xml 链接，它就是我想要的百讲演
+出 RSS Feed。免费用户的 RSS 只能（最多）每六小时刷新一次，我这里
+应该是够用了。</p>
+
+<h2>看一看效果</h2>
+
+<p>最后，把 xml 链接填进 RSS 通知器的设置里，它会每过一段时间帮我们
+查查演出信息有没有更新的。Feed43 强烈建议我们把检查的间隔设得和六
+小时在一个数量级，不过我没太敢，因为它的服务器经常因为负荷太高而
+拒绝服务，而且我也不知道我的 RSS 通知器在发现出错后会不会作出“穷
+寇莫追”的选择。</p>
+
+<p><img src="/graphics/0/Notifier-Settings.png" title="通知器的设置" alt="通知器的设置" /></p>
+
+<p>今天的问题解决了，而且没写脚本，真好。只是有一个问题，做 RSS Feed
+的网站不知道每条消息是什么时候更新的，我只能寄希望于我的 RSS 通知
+器会存下每一条消息，知道抓下的消息里有没有没出现过的。</p>
+
+<p>百年讲堂的票务好像是“中演票务通”代理的，它应该给网站加一个功能：
+根据搜索条件生成对应的 RSS Feed。不过我也不强求啦。</p>
+]]></content>
+  </entry>
+  
+</feed>

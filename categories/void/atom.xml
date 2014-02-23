@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: void | Disp. Nil.]]></title>
+  <link href="http://zhzhzoo.github.io/categories/void/atom.xml" rel="self"/>
+  <link href="http://zhzhzoo.github.io/"/>
+  <updated>2014-02-23T20:04:39+08:00</updated>
+  <id>http://zhzhzoo.github.io/</id>
+  <author>
+    <name><![CDATA[zhzhzoo]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[为什么 C 语言没有 void** 通用指针]]></title>
+    <link href="http://zhzhzoo.github.io/2014/why-is-there-no-generic-voidxx-pointer-in-C/"/>
+    <updated>2014-02-23T15:52:00+08:00</updated>
+    <id>http://zhzhzoo.github.io/2014/why-is-there-no-generic-voidxx-pointer-in-C</id>
+    <content type="html"><![CDATA[<p>这学期要学习 C 语言了，我一直在写 C 语言，但没有认真关注很多细节。
+趁着正儿八经学习的机会，我要好好学习 C 语言，把可能的边界情况和
+奇技淫巧都搞明白。</p>
+
+<p>那么今天就出了一个问题，比如我写了一段代码如下：</p>
+
+<pre><code>#include &lt;stdlib.h&gt;
+
+void nalloc(size_t sz, void **pp)
+{
+    *pp = malloc(sz);
+}
+
+int main(int argc, const char * argv[])
+{
+    const size_t NMEMB = 10;
+    char *a, *b;
+
+    a = malloc(NMEMB);
+    nalloc(NMEMB, &amp;b);    //Warning
+
+    if (a)
+        free(a);
+    if (b)
+        free(b);
+    return 0;
+}
+</code></pre>
+
+<p>这段代码编译时会报 <code>Warning : Incompatible pointer types passing
+'char **' to parameter of type 'void **'</code>。这是不难理解的，因为如果
+看 ISO C 语言标准的话，往里传的参数要可以赋值给对应的定义中的参数。
+而在两个指针间赋值，要么它们指向的类型相互兼容，要么有一个是 <code>void *</code>
+ 而且另一个不是函数指针。这样把 <code>char **</code> 赋给 <code>void **</code> 就是一件
+不合法的事情。  <br/>
+问题是，看这段程序，把 <code>malloc()</code> 从直接返回值改成传指针并在函数内部
+修改指针所指的变量是一件很自然的事情。C 语言既然允许任何指针和 <code>void *</code>
+ 之间互相赋值，为什么不允许任何指向指针的指针和 <code>void **</code> 间互相赋值呢？</p>
+
+<p>上网搜发现在 comp.lang.c 的 FAQ 中有人也问了这个问题，而且得到了很有
+说服力的答案：</p>
+
+<blockquote><p>Q: Suppose I want to write a function that takes a generic pointer as an argument and I want to simulate passing it by reference. Can I give the formal parameter type void **, and do something like this?</p>
+
+<pre><code>void f(void **);
+double *dp;
+f((void **)&amp;dp);
+</code></pre>
+
+<p>A: Not portably. Code like this may work and is sometimes recommended, but it relies on all pointer types having the same internal representation (which is common, but not universal; see question 5.17).</p>
+
+<p>There is no generic pointer-to-pointer type in C. void * acts as a generic pointer only because conversions (if necessary) are applied automatically when other pointer types are assigned to and from void *&rsquo;s; these conversions cannot be performed if an attempt is made to indirect upon a void ** value which points at a pointer type other than void *. When you make use of a void ** pointer value (for instance, when you use the * operator to access the void * value to which the void ** points), the compiler has no way of knowing whether that void * value was once converted from some other pointer type. It must assume that it is nothing more than a void *; it cannot perform any implicit conversions.</p>
+
+<p>In other words, any void ** value you play with must be the address of an actual void * value somewhere; casts like (void **)&amp;dp, though they may shut the compiler up, are nonportable (and may not even do what you want; see also question 13.9). If the pointer that the void ** points to is not a void *, and if it has a different size or representation than a void *, then the compiler isn&rsquo;t going to be able to access it correctly.</p>
+
+<p>To make the code fragment above work, you&rsquo;d have to use an intermediate void * variable:</p>
+
+<pre><code>double *dp;
+void *vp = dp;
+f(&amp;vp);
+dp = vp;
+</code></pre>
+
+<p>The assignments to and from vp give the compiler the opportunity to perform any conversions, if necessary.</p>
+
+<p>Again, the discussion so far assumes that different pointer types might have different sizes or representations, which is rare today, but not unheard of. To appreciate the problem with void ** more clearly, compare the situation to an analogous one involving, say, types int and double, which probably have different sizes and certainly have different representations. If we have a function</p>
+
+<pre><code>void incme(double *p)
+{
+   *p += 1;
+}
+</code></pre>
+
+<p>then we can do something like</p>
+
+<pre><code>int i = 1;
+double d = i;
+incme(&amp;d);
+i = d;
+</code></pre>
+
+<p>and i will be incremented by 1. (This is analogous to the correct void ** code involving the auxiliary vp.) If, on the other hand, we were to attempt something like</p>
+
+<pre><code>int i = 1;
+incme((double *)&amp;i);    /* WRONG */
+</code></pre>
+
+<p>(this code is analogous to the fragment in the question), it would be highly unlikely to work.</p></blockquote>
+
+<p>它的大概意思是，假设我们手头有一种类型叫 <code>foo</code> 和一个指针 <code>foo *fp;</code>，
+那么如果把 <code>fp</code> 赋给一个指针 <code>void **vpp = &amp;fp</code>，那么我们利用 <code>vpp</code>
+操作 <code>fp</code> 的时候，我们按照 <code>void *</code> 的规则来操作 <code>fp</code>。但是，<code>foo *</code>
+ 和 <code>void *</code> 并不一定遵循相同的规则。那么操作完之后，<code>fp</code> 所占的内存
+当作 <code>void *</code> 读出是有意义的，而当作 <code>foo *</code> 读出可能就没有意义。  <br/>
+我们举一个例子，将开始时的代码稍作修改，因为 C 语言标准规定 <code>void *</code>
+和 <code>char *</code> 有相同的表示和对齐要求，把 <code>char *</code> 改成 <code>int *</code> 这样有
+可能会出问题：</p>
+
+<pre><code>#include &lt;stdlib.h&gt;
+
+void nalloc(size_t sz, void **pp)
+{
+    *pp = malloc(sz);
+}
+
+int main(int argc, const char * argv[])
+{
+    const size_t NMEMB = 10;
+    int *a, *b;
+
+    a = malloc(NMEMB * sizeof(int));
+    nalloc(NMEMB * sizeof(int), &amp;b);
+
+    if (a)
+        free(a);
+    if (b)
+        free(b);
+    return 0;
+}
+</code></pre>
+
+<p>而且假设我们有一台特殊的电脑，它的 <code>void *</code> 有 <code>36</code> 位而 <code>int *</code>
+ 只有 <code>32</code> 位。更奇怪的是，假设我们有一个 <code>void *vp</code> 和一个
+ <code>int *ip</code> 指向同一片地址，则 <code>vp</code> 在内存中的值恰好是 <code>ip</code> 左移
+ <code>4</code> 位并补上零所得。例如 <code>0x199507280</code> 作为 <code>void *</code> 指针和
+ <code>0x19950728</code> 作为 <code>int *</code> 指针指向同一片内存区域。在将 <code>int *</code>
+ 赋给 <code>void *</code> 时，编译器会把内存中实际存的值左移 <code>4</code> 位后拷贝
+过去，而将 <code>void *</code> 赋给 <code>int *</code> 时，编译器会把内存中实际存的值
+右移 <code>4</code> 位后拷贝过去。这样让我们看上面的程序，在给 <code>a</code> 赋值时，
+如果 <code>malloc()</code> 返回了一个 <code>(void *) 0x199507280</code>，编译器会把它
+转换成 <code>(int *) 0x19950728</code> 然后赋给 <code>a</code>。而下一行把 <code>&amp;b</code> 传进
+ <code>nalloc()</code> 后，假如 <code>malloc()</code> 返回了一个 <code>(void *) 0x199507320</code>，
+那么 <code>*pp</code> 会被直接赋成这个值而不经任何转换，而 <code>pp</code> 指向 <code>b</code>，
+也就是说此时 <code>b</code> 的值为 <code>(int *) 0x199507320</code>，而不是我们想要的
+ <code>(int *) 0x19950732</code>。更可怕的是要是 <code>b</code> 放不下 <code>36</code> 位，也许
+得到的值会是理想值的低 <code>32</code> 位，即 <code>(int *) 0x99507320</code>，即便
+不然，把 <code>b</code> 按照 <code>int *</code> 来用也难以得到我们想要的结果了。为了
+能得到理想的结果，程序要这么改：</p>
+
+<pre><code>    void *vp;
+    int *b;
+
+    nalloc(NMEMB * sizeof(int), &amp;vp);
+    b = vp;
+</code></pre>
+
+<p>这样如果是刚才的情景，<code>nalloc()</code> 执行完后，<code>vp</code> 值为
+ <code>(void *) 0x199507320</code>，而下一句赋值时编译器会把指针转换成
+ <code>(int *) 0x19950723</code> 再赋给 <code>b</code>。我们就得到了理想的结果。</p>
+
+<p>不过我有种奇怪的感觉，因为生产生活中我能够接触的所有计算机
+（可惜只有 x86 和 ARM&hellip;）各种指针的内部表示方式都相同，类型
+转换只与编译器的语义解释相关而内部表示并不需要转换操作。于是
+之前的例子就显得有一丁点儿蛋疼。但是在这个 FAQ 的注释里，作者引
+用了一条消息说历史上确实出现过这么有点儿蛋疼的计算机（Andy 不时
+嘲笑它们，它们确实都是历史的先驱）。唉可惜 Andy 不够长寿没有
+亲眼见到这么奇葩的东西：</p>
+
+<blockquote><p>[I and correspondent were discussing, among other things, the fact that pointer types aren&rsquo;t necessarily all identical and that pointer casts might therefore involve actual conversions. I drew Chris Torek into the conversation, and the text below is excerpted from his contribution.]</p>
+
+<p>From: Chris Torek<br/>
+Date: Sat, 5 Nov 1994 05:32:05 -0800<br/>
+Message-Id: &lt;199411051332.FAA11040@elf.bsdi.com><br/>
+Subject: Re: Q: How do you assign a float to a (void) data?</p>
+
+<p>I just want to add one or two specifics to Steve&rsquo;s message&hellip;</p>
+
+<blockquote><p>Word-addressed machines are by no means hypothetical. I can<br/>
+never remember the details, but I believe that machines<br/>
+manufactured by Data General, PR1ME, and/or Cray have used such<br/>
+schemes, and C compilers have been written for these machines.<br/>
+(Writing code for these machines, and especially porting existing<br/>
+code to such machines, is a real lesson in portable pointer usage.)</p></blockquote>
+
+<p>I have never used a Cray, but I believe the list above is correct (if not complete). On the other hand, I have used the Data General MV-series machines. These have `word pointers' and `byte pointers', where words are made up of two bytes. (This seems odd at first, as the machine has 32-bit integers, but is due to the history of the machine; the pointer format is an extension of that used on the DG Nova, a 16-bit word-addressed machine. The Nova also had only 8 ALU ops, including a subtract-with-borrow but no subtract-without-borrow. This was because they used a 74xx series ALU, that had 16 ops, but had only 3 bits left in the instruction, so they hardwired one of the ALU operand pins to a `1'. The MV series fixed that particular annoyance.)</p>
+
+<p>On the DG, to convert a word pointer to a byte pointer, you shift the word pointer left, introducing a 0 bit as the `byte offset' bit. The top bit of a word pointer is an `indirection' bit; this is lost in the conversion. Similarly, to convert a byte pointer to a word pointer, you shift the byte pointer right, losing the byte offset and introducing a 0 bit as the `indirection' bit. Such a shift also moves the segment and ring bits, and I can no longer recall whether they were expected to be shifted this way, or whether there was a special pair of shift instructions that preserved these bits, moving only the address bits.</p></blockquote>
+
+<p>翻译一下</p>
+
+<blockquote><p>[我和小伙伴们在讨论其他问题的时候碰着这么个事儿：事实上指针类型并不必须都是相同的，并且指针间的转换有可能涉及到实际的操作。我把 Chris Torek 拉进来了，下面的文本截取自他的贡献。]</p>
+
+<p>From: Chris Torek<br/>
+Date: Sat, 5 Nov 1994 05:32:05 -0800<br/>
+Message-Id: &lt;199411051332.FAA11040@elf.bsdi.com><br/>
+Subject: Re: Q: 你怎么把一个 float 赋给一个 (void) 类型的数据?</p>
+
+<p>我只想给 Steve 的消息加一两个具体的例子&hellip;</p>
+
+<blockquote><p>不管怎么说按字寻址的机器都不是想当然的。我从来都记不住细节但我相信 Data General, PR1ME 和/或 Cray 用过这种模式，而且这些机器上也有人写过 C 编译器。（给这些机器写程序，特别是把已有代码移植到这些机器上真是指针可移植性的一个教训。）</p></blockquote>
+
+<p>我从没用过 Cray，但是我相信上面的列表是对的（就算不全）。不过，我用过 Data General MV-系列机器。它们有 `字指针' 和 `字节指针'，这里一字由两字节组成。（这一点初看上去很奇怪，因为这些机器有 32 位整数，但这实际上是个历史问题；这里的指针格式是 DG Nova 所用指针的扩展，而 DG Nova 是 16 位按字寻址的机器。而且 Nova 只有 8 个 ALU 单元，包括一个带退位减法器但没有不带退位减法器。这是因为他们用了一个 74xx 系列 ALU，本来有 16 个单元，但只在指令里留下了 3 位，所以他们硬把 ALU 操作数的针脚之一接到 `1' 上了。MV 系列修正了这个麻烦）</p>
+
+<p>在 DG 上，要把字指针转换成字节指针，你要把字指针左移，引入一个 0 位作为 `字节偏移' 位。字节指针的最高位是 `间接' 位，在转换时丢掉了。类似地，要把字节指针转成字指针，你把字节指针右移，丢掉字节偏移并引入一个 0 位作为 `间接' 位。这个移位也动了段位和环位，不过我忘了到底它们也应该这么移，还是说有一对儿特殊的移位指令保留这些位而只移动地址位。</p></blockquote>
+
+<p>参考资料：</p>
+
+<p><a href="http://c-faq.com/ptrs/genericpp.html">comp.lang.c FAQ list · Question 4.9</a><br/>
+<a href="http://c-faq.com/null/wierdptrs.ct.html">Re: Q: How do you assign a float to a (void) data?</a></p>
+]]></content>
+  </entry>
+  
+</feed>
