@@ -1,0 +1,426 @@
+
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<title>printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题  | Disp. Nil.</title>
+
+	<meta name="author" content="zhzhzoo">
+
+<meta name="description" content="Life and Thoughts of zhzhzoo"> <meta name="keywords" content="">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Disp. Nil." type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+
+</head>
+
+
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">Disp. Nil.</a></h1>
+<span class="tagline">Disciplined Nihility</span>
+<!-- <nav id="main-nav"><ul>
+	<li><a href="/about">About</a></li>
+	<li><a href="/archives">Archives</a></li>
+	<li><a href="/contact">Contact</a></li>
+</ul>
+</nav> -->
+<!-- <nav id="mobile-nav"> -->
+<!-- 	<div class="alignleft menu"> -->
+<!-- 		<a class="button">Menu</a> -->
+<!-- 		<div class="container"><ul>
+	<li><a href="/about">About</a></li>
+	<li><a href="/archives">Archives</a></li>
+	<li><a href="/contact">Contact</a></li>
+</ul>
+</div> -->
+<!-- 	</div> -->
+<!-- </nav> -->
+
+
+</header>
+
+	<div id="content" class="inner"><article class="post">
+	<header>
+		<h2 class="title">printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题</h2>
+		<div class="meta date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-11T23:02:00+08:00" pubdate data-updated="true">Mar 11<span>th</span>, 2014</time></div>
+	</header>
+	<div class="entry-content"><p>开始写之前 Andy 要善意地提醒大家，请看纸质书，电子书少看，能不看就不看，
+Andy 就是去网上下载电子书才做错题目了的。</p>
+
+<p>裘老师的《从问题到程序》第二章最后一道题如下，被我们留作习题。不过由于下面将要讲到的原因，我觉得这道题现在放在讲 C 语言的书里就不再合适了。</p>
+
+<p><img src="/graphics/1/prob.png" alt="题目" /></p>
+
+<p>看到这道题，我一开始写了这样一个程序：</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf("%lld\n", 0.1);
+    return 0;
+}
+</code></pre>
+
+<p>（不熟悉的同学可以回忆一下没有后缀的 <code>0.1</code> 是 <code>double</code> 型，常见的计算机里面 <code>sizeof(double)</code> 是 <code>8</code>，而 <code>%lld</code> 指 <code>long long</code> 型，而
+ <code>sizeof(long long)</code> 也是 <code>8</code>）不过问题是其执行结果出我所料（因为浮点数是按 IEEE 754 标准表示的（上课讲了），这个数看起来不像是
+ <code>0.1</code> 的表示）：</p>
+
+<pre><code>$ clang 9.c -o 9
+$ ./9
+140734627489872
+</code></pre>
+
+<p>我改写了一下程序：</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf("%llu\n", 0.1);
+    printf("%llu\n", 0.1);
+    printf("%llu\n", 0.1);
+    printf("%llu\n", 0.1);
+    printf("%llu\n", 0.1);
+    return 0;
+}
+</code></pre>
+
+<p>结果：</p>
+
+<pre><code>$ clang 9.c -o 9
+$ ./9
+140734620719184
+3
+2
+2
+2
+</code></pre>
+
+<p>不仅每次的输出不同，第一次（尽管不像对的但是和下面的比起来感觉更对一点）的输出也变了。于是多次执行第一个程序：</p>
+
+<pre><code>$ ./9
+140734717704272
+$ ./9
+140734754580560
+$ ./9
+140734598735952
+$ ./9
+140734682306640
+</code></pre>
+
+<p>这个程序按道理不应产生不同的输出，那么一定有问题。来让我们看看编译出来的汇编代码：</p>
+
+<pre><code>$ clang 9.c -S -O2 -o 9.S
+</code></pre>
+
+<p>嗯汇编代码长这样（不开 <code>-O2</code> 的话很啰嗦）：</p>
+
+<pre><code>    .section    __TEXT,__text,regular,pure_instructions
+    .section    __TEXT,__literal8,8byte_literals
+    .align  3
+LCPI0_0:
+    .quad   4591870180066957722     ## double 0.1
+    .section    __TEXT,__text,regular,pure_instructions
+    .globl  _main
+    .align  4, 0x90
+_main:                                  ## @main
+    .cfi_startproc
+## BB#0:
+    pushq   %rbp
+Ltmp2:
+    .cfi_def_cfa_offset 16
+Ltmp3:
+    .cfi_offset %rbp, -16
+    movq    %rsp, %rbp
+Ltmp4:
+    .cfi_def_cfa_register %rbp
+    leaq    L_.str(%rip), %rdi
+    movsd   LCPI0_0(%rip), %xmm0
+    movb    $1, %al
+    callq   _printf
+    xorl    %eax, %eax
+    popq    %rbp
+    ret
+    .cfi_endproc
+
+    .section    __TEXT,__cstring,cstring_literals
+L_.str:                                 ## @.str
+    .asciz   "%lld\n"
+
+
+.subsections_via_symbols
+</code></pre>
+
+<p>不用特别仔细看的话有些东西也是可以看出来的：</p>
+
+<ul>
+<li>这个文件是按 <code>.section</code> 分成不同部分的，不要按空行来分</li>
+<li>标 <code>## double 0.1</code> 那里显然就是 0.1 的表示了，<code>.quad</code> 表示它是四字的（字节 8 位，字 16 位，双字 32 位，四字 64 位），那么我们就知道输出应该是什么了</li>
+<li><code>_main:</code> 开始直到 <code>.cfi_endproc</code> 的部分是 <code>main</code> 函数体</li>
+</ul>
+
+
+<p>那么要是仔细看的话，就一行行看了。</p>
+
+<p>首先，所有 <code>.cfi</code>（call frame info） 开头的指令估计是和调用栈的信息有关的，我不管它了。</p>
+
+<p>除此之外，前两个 <code>pushq %rbp</code> 和 <code>movq %rsp, %rbp</code> 及倒数第二个 <code>popq %rbp</code>
+ 是维护栈基指针的，具体细节我也不管它了。</p>
+
+<p>下一句 <code>leaq L_.str(%rip), %rdi</code>（load effective address，q 指 quadword）就是把 <code>L_.str</code> 的地址装进 <code>%rdi</code> 寄存器，其中 <code>rip</code>（instruction pointer）存着下一条指令的地址，链接器处理完后会把 <code>L_.str</code> 替换成下一条指令的地址到
+ <code>L_.str</code> 的偏移量。往下看，<code>L_.str</code> 就是 <code>"%lld\n</code>，我们给 <code>printf</code> 函数的第一个参数。</p>
+
+<p>再下一句 <code>movsd LCPI0_0(%rip), %xmm0</code> （move，sd 指 scalar double-precision
+ floating-point） 就是把 <code>LCPI0_0</code> 装进 <code>%xmm0</code> 寄存器。这回要往上看，
+ <code>LCPI0_0</code> 是给 <code>printf</code> 函数的第二个参数。</p>
+
+<p>下面 <code>movb $1, %al</code> （move，b 指 byte）是把 <code>1</code> 装进 <code>al</code> 寄存器，<code>al</code> 就是
+ <code>%rax</code> 的低 8 位。</p>
+
+<p><code>callq _printf</code>（call，q 指 quadword，因为 64 位机器里过程地址是 64 位的）就是调用 <code>_printf</code> 函数啦。</p>
+
+<p><code>xorl %eax, %eax</code>（xor，l 指 long，即 32 位的整数，因为我们的 <code>main</code> 函数返回
+ <code>int</code>，它在我的编译器里是 32 位的） 是把 <code>%eax</code> 和 <code>%eax</code>（就是 <code>%rax</code> 的低 32
+ 位）异或一下装进 <code>%eax</code>。所谓异或运算有一个性质，就是一个数和它本身的异或为 0，也就是这条指令把 <code>%eax</code> 清零了。之所以不写 <code>movl $0, %eax</code> 是因为现在这么写生成的机器代码会短一点儿。</p>
+
+<p><code>ret</code>（return）就是 <code>main</code> 函数完了返回调用 <code>main</code> 函数的地方。谁调用的 <code>main</code>
+ 函数呢，这是一个问题今儿不管了。</p>
+
+<p>输出的不是 0.1，问题出在什么地方呢？出在调用 <code>_printf</code> 的地方。<code>_printf</code> 它是怎么知道我们用了几个参数调用它的，参数都是什么呢？这个好办，它假设呀，假设你是照我想象的方式调用我的，我都告诉你我该怎么调用了。</p>
+
+<p>前面我们看到了，<code>callq _printf</code> 前，我们把第一个参数放进了 <code>%rdi</code>，第二个参数放进了 <code>%xmm0</code>。<a href="http://en.wikipedia.org/wiki/Application_binary_interface">ABI</a>（Application Binary Interface）告诉我们这样做是对的。这里可以找到我们现在用的 <a href="http://www.x86-64.org/documentation/abi.pdf">System V Application Binary Interface AMD64
+ Architecture Processor Supplement</a>，其中一部分规定了函数调用时参数和返回值的传递方式，栈的结构和寄存器归谁用。<code>_printf</code> 函数遵循这个规范，所以我们依照这个规范调用它。这里面讲前六个（在 C 的函数定义里从左往右数）整数参数通过寄存器传递，它们依次分别使用（就是调用之前存进去） <code>%rdi</code> <code>%rsi</code> <code>%rdx</code>
+ <code>%rcx</code> <code>%r8</code> <code>%r9</code>；而前八个浮点数参数也通过寄存器传递，它们依次分别使用
+ <code>%xmm0</code> 到 <code>%xmm7</code>；如果函数接受变长参数（嗯 <code>_printf</code> 就是这样的），<code>%al</code>
+ 寄存器要设成用掉的 <code>%xmm0</code> 到 <code>%xmm7</code> 中的寄存器个数，呐，也不一定是个数，只要是个数的上界就可以（我也不知道为什么回头去看看可变参数的实现）。这样看来，我们调用 <code>_printf</code> 的时候，第一个参数是字符串的地址，算整数参数，送进了 <code>%rdi</code>，第二个参数是浮点数，送进了 <code>%xmm0</code>，也把 <code>%al</code> 设成了 1，我们做得没错。</p>
+
+<p>可是我们告诉 <code>_printf</code> 要输出 <code>%lld</code>，就是说告诉它第一个参数是 <code>long long</code>
+ 型的，根据刚才的规范第二个整型参数存在 <code>%rsi</code> 里，<code>_printf</code> 去 <code>%rsi</code> 里读第二个参数，没有去 <code>%xmm0</code> 里读，那当然读到的不是 0.1 啦。我们要体谅
+ <code>_printf</code>，它长成下面那个样子，没办法从除了格式串之外的地方知道我们给它传了几个参数，都是什么类型的。（<code>__printflike</code> 用来告诉编译器这个函数像 <code>printf</code>
+ 那样接受参数，即有一个格式字符串和一串可变参数。后面括号里第一个数表示哪个参数是格式字符串，第二个数表示从第几个参数开始是可变参数。编译器会在编译对
+ <code>__printflike</code> 函数的调用时读格式串，看和参数的类型是否匹配，不匹配的话给
+ warning。）</p>
+
+<pre><code>int  printf(const char * __restrict, ...) __printflike(1, 2);
+</code></pre>
+
+<p>可是我们怎么做能输出 0.1 呢？告诉 <code>_printf</code> <code>%lld</code> 之后，它就去给整型参数准备的寄存器里找，不会去 <code>%xmm0</code> 里找，这样我们没法让 <code>_printf</code> 从 <code>%xmm0</code> 里找一个数出来再当整数打。那么我们就只能把 0.1 存进一个整型寄存器了。先试试这个：</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf("%lld\n", (long long)0.1);
+    return 0;
+}
+</code></pre>
+
+<p>结果打出来 <code>0</code>，这回确实是把 0.1 存到整型寄存器了，可是先转成整数了。我得想办法让编译器把 0.1 在内存里的实际表示直接看成一个整数存到整型寄存器里：</p>
+
+<pre><code>    .section    __TEXT,__text,regular,pure_instructions
+    .section    __TEXT,__literal8,8byte_literals
+    .align  3
+LCPI0_0:
+    .quad   4591870180066957722     ## double 0.1
+    .section    __TEXT,__text,regular,pure_instructions
+    .globl  _main
+    .align  4, 0x90
+_main:                                  ## @main
+    .cfi_startproc
+## BB#0:
+    pushq   %rbp
+Ltmp2:
+    .cfi_def_cfa_offset 16
+Ltmp3:
+    .cfi_offset %rbp, -16
+    movq    %rsp, %rbp
+Ltmp4:
+    .cfi_def_cfa_register %rbp
+    leaq    L_.str(%rip), %rdi
+    movq    LCPI0_0(%rip), %rsi
+    movb    $1, %al
+    callq   _printf
+    xorl    %eax, %eax
+    popq    %rbp
+    ret
+    .cfi_endproc
+
+    .section    __TEXT,__cstring,cstring_literals
+L_.str:                                 ## @.str
+    .asciz   "%lld\n"
+
+
+.subsections_via_symbols
+</code></pre>
+
+<p>口亨，看我直接把 <code>%xmm0</code> 改成 <code>%rsi</code> 还不行？不过注意两件事，一是 <code>movsd</code>
+ 要改成 <code>movq</code> 因为 <code>movsd</code> 是往浮点数的寄存器（叫 SSE 寄存器）里移用的，要往 r 开头的寄存器（叫通用寄存器）里移用 <code>movq</code>；二是这个文件后缀存成
+ <code>.S</code>，直接调用编译器就得到可执行文件了。试试：</p>
+
+<pre><code>$ clang 9.S -o 9
+$ ./9
+4591870180066957722
+</code></pre>
+
+<p>嘿嘿怎么样对了叭~囧不过我们不能天天写汇编啊。。。其实让 C 语言把 <code>double</code>
+ 硬当成 <code>long long</code> 处理也是可以办到的：先取地址，再转换指针的类型，然后解引用。</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    double a = 0.1;
+    printf("%lld\n", *(long long*)&amp;a);
+    return 0;
+}
+</code></pre>
+
+<p>诶不错：</p>
+
+<pre><code>$ clang 9.c -o 9
+$ ./9
+4591870180066957722
+</code></pre>
+
+<p>注意到 C99 有了复合字面量，我们可以不定义变量（因为上个星期还没学）把这个程序写出来：</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main()
+{
+    printf("%lld\n", *(long long*)(double []){0.1});
+    return 0;
+}
+</code></pre>
+
+<p>这里 <code>(double []){0.1}</code> 是一个匿名的数组，用起来和有名字的数组一样。</p>
+
+<p>所以你看吧，这个题目这么复杂，不应该放在第二章里吧。它放在这里的原因是
+ 32 位的时候所有参数都是用栈传的，不同类型的数据都放在一起，<code>_printf</code>
+ 去栈里读的 <code>long long</code> 和我往里放的 <code>double</code> 是同一个东西，开头写的程序是对的。但是时过境迁，这个程序现在不对了，题目就变复杂了。</p>
+
+<p>诶对还有个问题，一开始的程序打的不是 0.1 那是什么呢？我们之前的讨论表示打的是 <code>%rsi</code> 寄存器里的内容，可我们的程序没动 <code>%rsi</code>，那里面会是什么？还记得
+ <code>%rsi</code> 用来传第二个参数吧，那 <code>%rsi</code> 里就是 <code>main</code> 的第二个参数啦，是 <code>argv</code>。试试：</p>
+
+<pre><code>#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+    printf("%lld\n", 0.1);
+    printf("%lld\n", argv);
+    return 0;
+}
+</code></pre>
+
+<p>来一起看看：</p>
+
+<pre><code>$ clang 9.c -o 9
+$ ./9
+140734760761424
+140734760761424
+</code></pre>
+
+<p>啊哈哈真的是这样（<code>argv</code> 每次都可能变，所以这个输出可能每次都不一样）。</p>
+
+<p>那么现在就有个有趣的问题了。32 位下实现可变参数只要算出来第一个参数的地址，然后依次在栈里往后找每一个参数就好啦。可是 64 位还得根据参数类型不同选择不同的寄存器，那可怎么写啊，要知道 C 语言有指针的算术操作，没有直接访问寄存器的功能啊喂，嗯是内联汇编吗？我没有看也不知道。嘻嘻 Andy 去给大家看看 64
+ 位的可变参数是怎么做到的，改天看清楚了回来告诉大家~</p>
+</div>
+
+</article>
+
+	
+	<div class="share">
+	  <ul>
+	  <li>
+  <a href="https://twitter.com/intent/tweet?text=printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题 by @&url=http://zhzhzoo.github.io/2014/ic-prob9/" title="Share printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题 on Twitter">
+    <img src="/images/social/twitter.png" />
+  </a>
+</li>
+
+	  <li>
+  <a href="https://www.facebook.com/sharer.php?u=http://zhzhzoo.github.io/2014/ic-prob9/" title="Share printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题 on Facebook">
+    <img src="/images/social/facebook.png" />
+  </a>
+</li>
+
+	  <!--   <li>
+  <a href="https://plus.google.com/share?url=http://zhzhzoo.github.io/2014/ic-prob9/" title="Share printf 函数怎么把浮点数硬看成整数输出——计概练习最后一题 on Google Plus">
+    <img src="/images/social/google.png" />
+  </a>
+</li>
+ -->
+	  </ul>
+	</div>
+
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+</div>
+	<footer id="footer" class="inner"><br>
+<br>
+<br>
+<br>
+&copy; 2014
+
+    zhzhzoo
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<!--<script src="/javascripts/hyphenator.js"></script>-->
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'dispnil';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://zhzhzoo.github.io/2014/ic-prob9/';
+        var disqus_url = 'http://zhzhzoo.github.io/2014/ic-prob9/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+</body>
+<script>
+  $(document).ready(function() {
+  // Make images center
+  $('p:has(img)').css('text-align', 'center');
+  });
+</script>
+</html>

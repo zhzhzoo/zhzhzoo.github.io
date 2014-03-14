@@ -4,7 +4,7 @@
   <title><![CDATA[Category: void | Disp. Nil.]]></title>
   <link href="http://zhzhzoo.github.io/categories/void/atom.xml" rel="self"/>
   <link href="http://zhzhzoo.github.io/"/>
-  <updated>2014-02-23T20:04:39+08:00</updated>
+  <updated>2014-03-15T02:15:34+08:00</updated>
   <id>http://zhzhzoo.github.io/</id>
   <author>
     <name><![CDATA[zhzhzoo]]></name>
@@ -172,7 +172,7 @@ int main(int argc, const char * argv[])
 （可惜只有 x86 和 ARM&hellip;）各种指针的内部表示方式都相同，类型
 转换只与编译器的语义解释相关而内部表示并不需要转换操作。于是
 之前的例子就显得有一丁点儿蛋疼。但是在这个 FAQ 的注释里，作者引
-用了一条消息说历史上确实出现过这么有点儿蛋疼的计算机（Andy 不时
+用了一条消息说历史上确实出现过这么有点儿蛋疼的计算机（Andy 不是
 嘲笑它们，它们确实都是历史的先驱）。唉可惜 Andy 不够长寿没有
 亲眼见到这么奇葩的东西：</p>
 

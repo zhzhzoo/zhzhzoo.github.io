@@ -193,7 +193,7 @@ int main(int argc, const char * argv[])
  <code>(void *) 0x199507320</code>，而下一句赋值时编译器会把指针转换成
  <code>(int *) 0x19950723</code> 再赋给 <code>b</code>。我们就得到了理想的结果。</p>
 
-<p>不过我有种奇怪的感觉，因为生产生活中我能够接触的所有计算机（可惜只有 x86 和 ARM&hellip;）各种指针的内部表示方式都相同，类型转换只与编译器的语义解释相关而内部表示并不需要转换操作。于是之前的例子就显得有一丁点儿蛋疼。但是在这个 FAQ 的注释里，作者引用了一条消息说历史上确实出现过这么有点儿蛋疼的计算机（Andy 不时嘲笑它们，它们确实都是历史的先驱）。唉可惜 Andy 不够长寿没有亲眼见到这么奇葩的东西：</p>
+<p>不过我有种奇怪的感觉，因为生产生活中我能够接触的所有计算机（可惜只有 x86 和 ARM&hellip;）各种指针的内部表示方式都相同，类型转换只与编译器的语义解释相关而内部表示并不需要转换操作。于是之前的例子就显得有一丁点儿蛋疼。但是在这个 FAQ 的注释里，作者引用了一条消息说历史上确实出现过这么有点儿蛋疼的计算机（Andy 不是嘲笑它们，它们确实都是历史的先驱）。唉可惜 Andy 不够长寿没有亲眼见到这么奇葩的东西：</p>
 
 <blockquote><p>[I and correspondent were discussing, among other things, the fact that pointer types aren&rsquo;t necessarily all identical and that pointer casts might therefore involve actual conversions. I drew Chris Torek into the conversation, and the text below is excerpted from his contribution.]</p>
 
